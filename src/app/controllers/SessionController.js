@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import * as Yup from "yup";
 
 import User from "../models/User";
+import File from "../models/File";
 import authConfig from "../../config/auth";
 
 class SessionController {
@@ -18,7 +19,16 @@ class SessionController {
     }
     const { email, password } = req.body;
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+      include: [
+        {
+          model: File,
+          as: "avatar",
+          attributes: ["id", "path", "url"]
+        }
+      ]
+    });
 
     if (!user) {
       return res.status(401).json({ error: "Usuário não existe." });
@@ -28,13 +38,16 @@ class SessionController {
       return res.status(401).json({ error: "Password invalido !" });
     }
 
-    const { id, name } = user;
+    const { id, name, user_name, avatar, active } = user;
 
     return res.json({
       user: {
         id,
         name,
-        email
+        user_name,
+        email,
+        avatar,
+        active
       },
       token: jwt.sign({ id }, authConfig.secret, {
         expiresIn: authConfig.expiresIn
@@ -47,7 +60,7 @@ class SessionController {
 
     const user = await User.findOne({ where: { id } });
 
-    const { name, user_name, email, avatar_id, active } = await user.update({
+    const { name, user_name, email, avatar, active } = await user.update({
       active: true
     });
 
@@ -57,7 +70,7 @@ class SessionController {
         name,
         user_name,
         email,
-        avatar_id,
+        avatar,
         active
       },
       token: jwt.sign({ id }, authConfig.secret, {
