@@ -1,9 +1,11 @@
 <strong>Olá, {{ user_name }}</strong>
-<p>Confirme seu cadastro clicando no botão ativar conta.</p>
-<p>
-
+<div>
+  <p>Confirme seu cadastro clicando no botão ativar conta.</p>
   <button
     style="background: rgb(40, 127, 226); border: 0; border-radius: 6px; justify-content: center; align-items: center; padding: 0 15px;">
     <a href=`http://localhost:3333/sessions/{{id_hash}}`
-      style="color: #fff; font-size: 18px; text-decoration: none;">Ativar Conta</a> </p>
-</button>
+      style="color: #fff; font-size: 18px; text-decoration: none;">Ativar Conta</a>
+  </button>
+  <p>Ou acesso o link a baixo colando em seu navegador</p>
+  http://localhost:3333/sessions/{{id_hash}}
+</div>

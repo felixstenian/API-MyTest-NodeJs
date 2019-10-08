@@ -1,7 +1,9 @@
-import User from "../models/User";
 import * as Yup from "yup";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+
+import User from "../models/User";
+import File from "../models/File";
 
 import Mail from "../../lib/Mail";
 
@@ -42,9 +44,16 @@ class UserController {
     }
 
     // Criando novo usuário
-    const { id, name, user_name, email, active } = await User.create(req.body);
+    const { id, name, user_name, email, avatar, active } = await User.create(
+      req.body
+    );
 
-    const id_hash = id + bcrypt.genSaltSync(2);
+    //Hash para envio de link na ativação de contas
+
+    const secret = "mytest";
+    const hash = crypto.createHmac("sha256", secret).digest("hex");
+
+    const id_hash = id + "$" + hash;
 
     await Mail.sendMail({
       to: `${user_name} <${email}>`,
@@ -61,6 +70,7 @@ class UserController {
       name,
       user_name,
       email,
+      avatar,
       active
     });
   }
@@ -68,13 +78,14 @@ class UserController {
   async update(req, res) {
     const schema = Yup.object().shape({
       name: Yup.string(),
+      user_name: Yup.string(),
       email: Yup.string().email(),
       oldPassword: Yup.string().min(6),
       password: Yup.string()
-        .required()
         .min(6)
         .matches(/[a-z]/)
         .matches(/[A-Z]/)
+        .required()
         .when("oldPassword", (oldPassword, field) =>
           oldPassword ? field.required() : field
         ),
@@ -84,7 +95,7 @@ class UserController {
     });
 
     // Validação de schema
-    if (!(await schema.isValid(req.body))) {
+    if (await schema.isValid(req.body)) {
       return res.status(400).json({ error: "Falha na Validação." });
     }
 
@@ -114,14 +125,24 @@ class UserController {
       return res.status(401).json({ error: "Password anterior incorreto." });
     }
 
-    const { id, name, active } = await user.update(req.body);
+    await user.update(req.body);
+
+    const { id, name, avatar } = await User.findByPk(req.userId, {
+      include: [
+        {
+          model: File,
+          as: "avatar",
+          attributes: ["id", "path", "url"]
+        }
+      ]
+    });
 
     return res.json({
       id,
       name,
       user_name,
       email,
-      active
+      avatar
     });
   }
 }
