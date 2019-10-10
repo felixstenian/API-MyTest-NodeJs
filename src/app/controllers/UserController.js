@@ -1,5 +1,4 @@
 import * as Yup from "yup";
-import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 import User from "../models/User";
