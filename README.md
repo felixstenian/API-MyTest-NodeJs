@@ -42,4 +42,4 @@
 - Multer
 - Sequelize
 - Docker
-- Other React and Node libs.
+- Other NodeJS libs.
